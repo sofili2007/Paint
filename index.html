@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script> src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"</script>
+</head>
+<body>
+    <h1>Mi propio paint</h1>
+ <script>
+    let nombreMaria = "Maria";
+    let nombreJuan = "Juan";
+    let edadMaria=15;
+    let edadJuan=25;
+    let edadTotal = 0;
+    console.log (edadTotal);
+    console.log (nombreMaria + " tiene " + edadMaria +  " años ");
+     console.log (nombreJuan + " tiene " + edadJuan +  " años ");
+    calcularEdad = () => {
+        if (edadMaria >= 18){
+            esMayorDeEdad = true;
+        } else{
+            esMayorDeEdad = false;
+        }
+        if (edadJuan >= 18){
+            esMayordeEdad = true;
+        } else{
+            esMayordeEdad = false;
+        }
+        edadTotal = edadJuan + edadMaria;
+    }
+    calcularEdad () ;
+    console.log(edadTotal) ;
+    console.log(esMayorDeEdad) ;
+    console.log(esMayordeEdad) ;
+ </script>   
+</body>
+</html>
