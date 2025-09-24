@@ -1,39 +1,475 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script> src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.min.js"</script>
+    <title>Lienzo Musical Interactivo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .controls-panel {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            border-left: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-group h3 {
+            margin: 0 0 15px 0;
+            color: #fff;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .instrument-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instrument-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .instrument-btn.active {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            transform: scale(1.1);
+        }
+        
+        .play-btn {
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .play-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        .clear-btn {
+            background: linear-gradient(45deg, #e17055, #d63031);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            width: 100%;
+            margin: 5px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #ddd;
+        }
+        
+        .slider {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .title {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .info {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        #canvas-container {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
-    <h1>Mi propio paint</h1>
- <script>
-    let nombreMaria = "Maria";
-    let nombreJuan = "Juan";
-    let edadMaria=15;
-    let edadJuan=25;
-    let edadTotal = 0;
-    console.log (edadTotal);
-    console.log (nombreMaria + " tiene " + edadMaria +  " años ");
-     console.log (nombreJuan + " tiene " + edadJuan +  " años ");
-    calcularEdad = () => {
-        if (edadMaria >= 18){
-            esMayorDeEdad = true;
-        } else{
-            esMayorDeEdad = false;
+    <div class="container">
+        <div class="canvas-container">
+            <div class="title">🎨 Lienzo Musical Interactivo 🎵</div>
+            <div class="info">Dibuja y escucha música simultáneamente - ¡Arriba más agudo, abajo más grave!</div>
+            <div id="canvas-container"></div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <h3>🎼 Reproducción</h3>
+                <button id="playBtn" class="play-btn">▶️ Reproducir Composición</button>
+                <button id="stopBtn" class="play-btn" style="background: linear-gradient(45deg, #e17055, #d63031);">⏹️ Detener</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>🎹 Instrumentos</h3>
+                <button class="instrument-btn active" data-instrument="synth">🎹 Piano</button>
+                <button class="instrument-btn" data-instrument="guitar">🎸 Guitarra</button>
+                <button class="instrument-btn" data-instrument="violin">🎻 Violín</button>
+                <button class="instrument-btn" data-instrument="bass">🎸 Bajo</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>🥁 Percusión</h3>
+                <button class="instrument-btn" data-instrument="kick">🥁 Bombo</button>
+                <button class="instrument-btn" data-instrument="snare">🥁 Caja</button>
+                <button class="instrument-btn" data-instrument="hihat">🥁 Hi-Hat</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>⚙️ Configuración</h3>
+                <div class="slider-container">
+                    <label>Volumen</label>
+                    <input type="range" class="slider" id="volumeSlider" min="0" max="100" value="70">
+                </div>
+                <div class="slider-container">
+                    <label>Velocidad de Reproducción</label>
+                    <input type="range" class="slider" id="speedSlider" min="50" max="200" value="100">
+                </div>
+                <button id="clearBtn" class="clear-btn">🗑️ Limpiar Lienzo</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>📊 Estado</h3>
+                <div style="font-size: 12px; color: #bbb;">
+                    <div>Notas grabadas: <span id="noteCount">0</span></div>
+                    <div>Instrumento actual: <span id="currentInstrument">Piano</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let canvas;
+        let drawing = false;
+        let currentInstrument = 'synth';
+        let recordedNotes = [];
+        let instruments = {};
+        let isPlaying = false;
+        let playbackIndex = 0;
+        let playbackInterval;
+        
+        // Inicializar Tone.js
+        async function initAudio() {
+            await Tone.start();
+            
+            // Crear instrumentos
+            instruments.synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "triangle" },
+                envelope: { attack: 0.1, decay: 0.2, sustain: 0.5, release: 1 }
+            }).toDestination();
+            
+            instruments.guitar = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sawtooth" },
+                envelope: { attack: 0.01, decay: 0.3, sustain: 0.3, release: 2 }
+            }).toDestination();
+            
+            instruments.violin = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.3, decay: 0.1, sustain: 0.8, release: 1.5 }
+            }).toDestination();
+            
+            instruments.bass = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: "square" },
+                envelope: { attack: 0.1, decay: 0.3, sustain: 0.4, release: 2 }
+            }).toDestination();
+            
+            // Percussion
+            instruments.kick = new Tone.MembraneSynth().toDestination();
+            instruments.snare = new Tone.NoiseSynth({
+                noise: { type: "white" },
+                envelope: { attack: 0.005, decay: 0.1, sustain: 0 }
+            }).toDestination();
+            instruments.hihat = new Tone.MetalSynth({
+                frequency: 200,
+                envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
+                harmonicity: 5.1,
+                modulationIndex: 32,
+                resonance: 4000,
+                octaves: 1.5
+            }).toDestination();
         }
-        if (edadJuan >= 18){
-            esMayordeEdad = true;
-        } else{
-            esMayordeEdad = false;
+        
+        function setup() {
+            canvas = createCanvas(800, 600);
+            canvas.parent('canvas-container');
+            background(20, 25, 40);
+            
+            // Eventos del mouse
+            canvas.mousePressed(startDrawing);
+            canvas.mouseReleased(stopDrawing);
+            
+            initAudio();
+            setupControls();
         }
-        edadTotal = edadJuan + edadMaria;
-    }
-    calcularEdad () ;
-    console.log(edadTotal) ;
-    console.log(esMayorDeEdad) ;
-    console.log(esMayordeEdad) ;
- </script>   
+        
+        function draw() {
+            if (drawing && mouseIsPressed) {
+                // Dibujar línea
+                stroke(255, 100 + random(155), 100 + random(155));
+                strokeWeight(3 + random(3));
+                line(pmouseX, pmouseY, mouseX, mouseY);
+                
+                // Calcular nota basada en la posición Y (invertida)
+                let frequency = map(mouseY, 0, height, 800, 200); // Arriba = agudo, abajo = grave
+                let note = Tone.Frequency(frequency).toNote();
+                
+                // Tocar nota
+                if (currentInstrument in instruments) {
+                    if (['kick', 'snare', 'hihat'].includes(currentInstrument)) {
+                        instruments[currentInstrument].triggerAttackRelease("8n");
+                    } else {
+                        instruments[currentInstrument].triggerAttackRelease(note, "8n");
+                    }
+                }
+                
+                // Grabar nota para reproducción posterior
+                recordedNotes.push({
+                    note: note,
+                    instrument: currentInstrument,
+                    time: Date.now(),
+                    x: mouseX,
+                    y: mouseY
+                });
+                
+                updateNoteCount();
+            }
+        }
+        
+        function startDrawing() {
+            drawing = true;
+        }
+        
+        function stopDrawing() {
+            drawing = false;
+        }
+        
+        function setupControls() {
+            // Botones de instrumentos
+            document.querySelectorAll('.instrument-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentInstrument = this.dataset.instrument;
+                    document.getElementById('currentInstrument').textContent = this.textContent;
+                });
+            });
+            
+            // Control de reproducción
+            document.getElementById('playBtn').addEventListener('click', playRecording);
+            document.getElementById('stopBtn').addEventListener('click', stopPlayback);
+            document.getElementById('clearBtn').addEventListener('click', clearCanvas);
+            
+            // Controles deslizantes
+            document.getElementById('volumeSlider').addEventListener('input', function() {
+                Tone.Destination.volume.value = Tone.gainToDb(this.value / 100);
+            });
+            
+            document.getElementById('speedSlider').addEventListener('input', function() {
+                Tone.Transport.bpm.value = this.value;
+            });
+        }
+        
+        function playRecording() {
+            if (recordedNotes.length === 0) {
+                alert('¡Dibuja algo primero para crear música!');
+                return;
+            }
+            
+            if (isPlaying) {
+                stopPlayback();
+                return;
+            }
+            
+            isPlaying = true;
+            playbackIndex = 0;
+            document.getElementById('playBtn').textContent = '⏸️ Pausar Reproducción';
+            
+            // Calcular tiempos relativos
+            let startTime = recordedNotes[0].time;
+            let speed = document.getElementById('speedSlider').value / 100;
+            
+            function playNextNote() {
+                if (playbackIndex >= recordedNotes.length || !isPlaying) {
+                    stopPlayback();
+                    return;
+                }
+                
+                let note = recordedNotes[playbackIndex];
+                
+                // Destacar visualmente la nota que se está reproduciendo
+                push();
+                fill(255, 255, 0, 150);
+                noStroke();
+                ellipse(note.x, note.y, 20, 20);
+                pop();
+                
+                // Tocar la nota
+                if (['kick', 'snare', 'hihat'].includes(note.instrument)) {
+                    instruments[note.instrument].triggerAttackRelease("8n");
+                } else {
+                    instruments[note.instrument].triggerAttackRelease(note.note, "8n");
+                }
+                
+                playbackIndex++;
+                
+                // Calcular el tiempo hasta la próxima nota
+                let nextDelay = 50; // Delay base
+                if (playbackIndex < recordedNotes.length) {
+                    let timeDiff = recordedNotes[playbackIndex].time - note.time;
+                    nextDelay = Math.max(timeDiff / speed, 10);
+                }
+                
+                setTimeout(playNextNote, nextDelay);
+            }
+            
+            playNextNote();
+        }
+        
+        function stopPlayback() {
+            isPlaying = false;
+            playbackIndex = 0;
+            document.getElementById('playBtn').textContent = '▶️ Reproducir Composición';
+        }
+        
+        function clearCanvas() {
+            background(20, 25, 40);
+            recordedNotes = [];
+            updateNoteCount();
+        }
+        
+        function updateNoteCount() {
+            document.getElementById('noteCount').textContent = recordedNotes.length;
+        }
+        
+        // Agregar líneas de guía para las notas
+        function drawGuideLines() {
+            push();
+            stroke(255, 255, 255, 30);
+            strokeWeight(1);
+            
+            for (let i = 1; i < 8; i++) {
+                let y = (height / 8) * i;
+                line(0, y, width, y);
+                
+                // Etiquetas de notas
+                fill(255, 255, 255, 100);
+                noStroke();
+                textSize(12);
+                let freq = map(y, 0, height, 800, 200);
+                let note = Tone.Frequency(freq).toNote();
+                text(note, 10, y - 5);
+            }
+            pop();
+        }
+        
+        // Dibujar las líneas de guía en el fondo
+        function setup() {
+            canvas = createCanvas(800, 600);
+            canvas.parent('canvas-container');
+            background(20, 25, 40);
+            drawGuideLines();
+            
+            canvas.mousePressed(startDrawing);
+            canvas.mouseReleased(stopDrawing);
+            
+            initAudio();
+            setupControls();
+        }
+    </script>
 </body>
 </html>
